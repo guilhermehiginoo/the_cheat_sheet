@@ -43,7 +43,7 @@ npm install         # first time only
 npm run dev         # Vite dev server for CSS/JS
 ```
 
-- `.env` is **not** committed — that is why a cloned project has none.
+- `.env` is **not** committed, which is why a cloned project has none.
 - `APP_KEY` is used to encrypt sessions and cookies. Without it, nothing boots.
 - `php artisan serve` is for development only; production runs behind Nginx/Apache or FrankenPHP.
 - A brand-new project defaults to SQLite: `laravel new` already creates
@@ -52,19 +52,19 @@ npm run dev         # Vite dev server for CSS/JS
 ## Starter Kits
 
 `laravel new` prompts you to pick a starter kit. A starter kit is a normal
-Laravel application that already ships authentication — login, registration,
-password reset, email verification, two-factor — plus a scaffolded frontend.
+Laravel application that already ships authentication (login, registration,
+password reset, email verification, two-factor) plus a scaffolded frontend.
 All of that code lives **inside your project**, so you own it and edit it
 directly; there is nothing to upgrade later.
 
-- **React** — Inertia, React 19, TypeScript, Tailwind, [shadcn/ui](https://ui.shadcn.com). Frontend in `resources/js/`.
-- **Vue** — Inertia, Vue 3 Composition API, TypeScript, Tailwind, shadcn-vue. Frontend in `resources/js/`.
-- **Svelte** — Inertia, Svelte 5, TypeScript, Tailwind, shadcn-svelte. Frontend in `resources/js/`.
-- **Livewire** — Livewire + Tailwind + [Flux UI](https://fluxui.dev), reactive UI written in PHP with no JS framework. Frontend in `resources/views/`.
-- **None** — the plain skeleton. Pick this to learn the framework itself, or when you're building an API.
+- **React**: Inertia, React 19, TypeScript, Tailwind, [shadcn/ui](https://ui.shadcn.com). Frontend in `resources/js/`.
+- **Vue**: Inertia, Vue 3 Composition API, TypeScript, Tailwind, shadcn-vue. Frontend in `resources/js/`.
+- **Svelte**: Inertia, Svelte 5, TypeScript, Tailwind, shadcn-svelte. Frontend in `resources/js/`.
+- **Livewire**: Livewire + Tailwind + [Flux UI](https://fluxui.dev), reactive UI written in PHP with no JS framework. Frontend in `resources/views/`.
+- **None**: the plain skeleton. Pick this to learn the framework itself, or when you're building an API.
 
 The three Inertia kits let you write React/Vue/Svelte components while keeping
-server-side routing and controllers — no separate API layer. Livewire is the
+server-side routing and controllers, with no separate API layer. Livewire is the
 choice if you'd rather stay in Blade and PHP.
 
 ```bash
@@ -74,8 +74,8 @@ laravel new my-app --using=vendor/starter-kit # a community kit from Packagist
 
 Each kit also offers two options in the same prompt:
 
-- **Teams** — users belong to teams, with management screens and team-scoped routes (`/{current_team}/dashboard`).
-- **WorkOS AuthKit** — swaps the built-in auth for a hosted provider with social login, passkeys, magic links, and SSO. Needs `WORKOS_CLIENT_ID`, `WORKOS_API_KEY`, and `WORKOS_REDIRECT_URL` in `.env`.
+- **Teams**: users belong to teams, with management screens and team-scoped routes (`/{current_team}/dashboard`).
+- **WorkOS AuthKit**: swaps the built-in auth for a hosted provider with social login, passkeys, magic links, and SSO. Needs `WORKOS_CLIENT_ID`, `WORKOS_API_KEY`, and `WORKOS_REDIRECT_URL` in `.env`.
 
 Authentication in every kit is powered by **Laravel Fortify**, which registers
 the routes for you. Turn features on and off in `config/fortify.php`:
@@ -91,13 +91,13 @@ use Laravel\Fortify\Features;
 ],
 ```
 
-- Registration logic lives in `app/Actions/Fortify/CreateNewUser.php` — that's
+- Registration logic lives in `app/Actions/Fortify/CreateNewUser.php`, and that's
   where you add extra fields to the sign-up form.
 - On the Inertia kits, disabling a feature means also removing the references to
   its routes in your components, or the frontend build fails.
 - **Breeze** and **Jetstream** were the previous generation of starter kits.
-  Plenty of tutorials still use them, but the current docs no longer list them —
-  for a new project, use the kits above.
+  Plenty of tutorials still use them, but the current docs no longer list them,
+  so use the kits above for a new project.
 - Version note: this generation of kits arrived in **Laravel 12**; the Svelte
   kit and Fortify-powered authentication came in **Laravel 13**. Older
   tutorials showing `laravel new --breeze` predate all of it.
@@ -111,8 +111,8 @@ that setup work.
 ### Herd (macOS / Windows)
 
 A native app that bundles PHP, Composer, and nginx. Any project inside its
-parked directory is served automatically at `<folder>.test` — no `serve`
-command, no port numbers.
+parked directory is served automatically at `<folder>.test`, with no `serve`
+command and no port numbers.
 
 ```bash
 herd park ~/Sites          # serve every project in this folder
@@ -123,7 +123,7 @@ herd open                  # open the current project in the browser
 
 - Switch PHP versions per project from the UI or `herd use php@8.3`.
 - Herd bundles the `php`, `composer`, `laravel`, `node`, `npm`, and `nvm`
-  binaries — if `node` isn't on your `PATH` outside your shell, that's why.
+  binaries, so if `node` isn't on your `PATH` outside your shell, that's why.
 - The paid tier adds databases, a mail catcher, and log viewing; the free tier
   covers PHP + nginx.
 
@@ -156,7 +156,7 @@ alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'
 ```
 
 - Running a bare `php artisan migrate` on the host while using Sail is a common
-  mistake — it targets the host's PHP and can't reach the container's database.
+  mistake, since it targets the host's PHP and can't reach the container's database.
 - In `.env`, `DB_HOST` is the **service name** (`mysql`), not `127.0.0.1`.
 
 Everything else in this cheat sheet is identical either way. Herd and Sail
@@ -164,7 +164,7 @@ change *where* the commands run, not what they do.
 
 ## Architecture: MVC
 
-Laravel follows the **MVC** pattern — Model, View, Controller. A request flows
+Laravel follows the **MVC** pattern (Model, View, Controller). A request flows
 through the app in one direction:
 
 ```text
@@ -250,7 +250,7 @@ php artisan up
 ```
 
 - In production you *cache* instead: `php artisan config:cache route:cache view:cache`.
-- In development, keep them cleared — cached config ignores `.env` changes.
+- In development, keep them cleared, since cached config ignores `.env` changes.
 
 ## Routing
 
@@ -275,7 +275,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 });
 ```
 
-- Type-hinting the model (`show(Post $post)`) enables **route model binding** —
+- Type-hinting the model (`show(Post $post)`) enables **route model binding**:
   Laravel fetches the record and 404s automatically if it doesn't exist.
 - Use named routes and `route('posts.index')` instead of hardcoded URLs.
 - `routes/web.php` has sessions and CSRF; `routes/api.php` is stateless.
@@ -341,7 +341,7 @@ class Post extends Model
 }
 
 $post->comments;                       // lazy load
-Post::with('comments')->get();         // eager load — avoids the N+1 problem
+Post::with('comments')->get();         // eager load, avoids the N+1 problem
 ```
 
 - `create()` and `update()` only assign fields listed in `$fillable`. A silently
@@ -370,7 +370,7 @@ public function down(): void
 }
 ```
 
-- Never edit a migration that already ran in production — add a new one.
+- Never edit a migration that already ran in production; add a new one instead.
 - Locally, `php artisan migrate:fresh` is the fast way to redo everything.
 
 ## Blade Templates
@@ -381,7 +381,7 @@ public function down(): void
 
 @section('content')
     <h1>{{ $title }}</h1>          {{-- escaped output --}}
-    {!! $trustedHtml !!}           {{-- raw output — only for content you trust --}}
+    {!! $trustedHtml !!}           {{-- raw output, only for content you trust --}}
 
     @if ($posts->isEmpty())
         <p>No posts yet.</p>
@@ -417,7 +417,7 @@ $request->validate([
 ]);
 ```
 
-On failure Laravel redirects back automatically with errors and old input —
+On failure Laravel redirects back automatically with errors and old input,
 no `try/catch` needed. For bigger rule sets, use a Form Request:
 
 ```bash
@@ -436,7 +436,7 @@ npm run dev     # development: hot reload, must stay running
 npm run build   # production: writes public/build/ + manifest.json
 ```
 
-- In development, `npm run dev` runs **alongside** `php artisan serve` — two
+- In development, `npm run dev` runs **alongside** `php artisan serve`: two
   terminals, both running. `composer run dev` starts both (plus the queue
   worker) in one.
 - In production (or whenever you're not running the dev server), you must have
