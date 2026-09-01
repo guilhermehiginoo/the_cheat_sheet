@@ -32,6 +32,12 @@ php artisan migrate       # cria as tabelas no banco
 Depois, suba os dois servidores que você precisa em desenvolvimento:
 
 ```bash
+composer run dev    # servidor + worker de fila + Vite, tudo num terminal só
+```
+
+Ou suba as peças na mão, em terminais separados:
+
+```bash
 php artisan serve   # aplicação PHP em http://127.0.0.1:8000
 npm install         # só na primeira vez
 npm run dev         # servidor Vite para CSS/JS
@@ -40,6 +46,61 @@ npm run dev         # servidor Vite para CSS/JS
 - O `.env` **não** é commitado — por isso um projeto clonado não tem nenhum.
 - A `APP_KEY` é usada para criptografar sessões e cookies. Sem ela, nada sobe.
 - `php artisan serve` é só para desenvolvimento; produção roda atrás de Nginx/Apache ou FrankenPHP.
+- Um projeto novo já vem com SQLite: o `laravel new` cria o
+  `database/database.sqlite` e roda as migrations sozinho.
+
+## Starter Kits
+
+O `laravel new` pergunta qual starter kit você quer. Um starter kit é uma
+aplicação Laravel normal que já vem com autenticação — login, cadastro,
+recuperação de senha, verificação de e-mail, dois fatores — mais um frontend
+montado. Todo esse código fica **dentro do seu projeto**, então ele é seu e você
+edita à vontade; não existe atualização de kit depois.
+
+- **React** — Inertia, React 19, TypeScript, Tailwind, [shadcn/ui](https://ui.shadcn.com). Frontend em `resources/js/`.
+- **Vue** — Inertia, Vue 3 Composition API, TypeScript, Tailwind, shadcn-vue. Frontend em `resources/js/`.
+- **Svelte** — Inertia, Svelte 5, TypeScript, Tailwind, shadcn-svelte. Frontend em `resources/js/`.
+- **Livewire** — Livewire + Tailwind + [Flux UI](https://fluxui.dev), UI reativa escrita em PHP, sem framework JS. Frontend em `resources/views/`.
+- **Nenhum** — o esqueleto puro. Escolha esse para aprender o framework em si, ou quando for construir uma API.
+
+Os três kits com Inertia deixam você escrever componentes React/Vue/Svelte
+mantendo o roteamento e os controllers no servidor — sem precisar de uma camada
+de API separada. O Livewire é a escolha se você prefere ficar no Blade e no PHP.
+
+```bash
+laravel new meu-app                            # pergunta qual kit
+laravel new meu-app --using=vendor/starter-kit # kit da comunidade, via Packagist
+```
+
+Cada kit ainda oferece duas opções no mesmo prompt:
+
+- **Teams** — usuários pertencem a times, com telas de gerenciamento e rotas escopadas por time (`/{current_team}/dashboard`).
+- **WorkOS AuthKit** — troca a autenticação nativa por um provedor hospedado, com login social, passkeys, magic link e SSO. Precisa de `WORKOS_CLIENT_ID`, `WORKOS_API_KEY` e `WORKOS_REDIRECT_URL` no `.env`.
+
+A autenticação de todos os kits é feita pelo **Laravel Fortify**, que registra
+as rotas por você. Ligue e desligue funcionalidades em `config/fortify.php`:
+
+```php
+use Laravel\Fortify\Features;
+
+'features' => [
+    Features::registration(),          // remova esta linha para fechar o cadastro público
+    Features::resetPasswords(),
+    Features::emailVerification(),
+    Features::twoFactorAuthentication(['confirm' => true]),
+],
+```
+
+- A lógica de cadastro fica em `app/Actions/Fortify/CreateNewUser.php` — é ali
+  que você adiciona campos extras ao formulário de registro.
+- Nos kits com Inertia, desligar uma funcionalidade exige também remover as
+  referências às rotas dela nos componentes, senão o build do frontend quebra.
+- **Breeze** e **Jetstream** eram a geração anterior de starter kits. Muito
+  tutorial ainda usa os dois, mas a documentação atual não os lista mais — para
+  um projeto novo, use os kits acima.
+- Nota de versão: essa geração de kits chegou no **Laravel 12**; o kit Svelte e
+  a autenticação via Fortify vieram no **Laravel 13**. Tutoriais antigos com
+  `laravel new --breeze` são anteriores a tudo isso.
 
 ## Ambiente Local: Herd e Sail
 
@@ -61,6 +122,8 @@ herd open                  # abre o projeto atual no navegador
 ```
 
 - Troque a versão do PHP por projeto pela interface ou com `herd use php@8.3`.
+- O Herd já traz os binários `php`, `composer`, `laravel`, `node`, `npm` e `nvm` —
+  se o `node` não aparece no `PATH` fora do seu shell, é por isso.
 - A versão paga adiciona bancos de dados, captura de e-mails e visualização de
   logs; a gratuita cobre PHP + nginx.
 
@@ -375,7 +438,8 @@ npm run build   # produção: gera public/build/ + manifest.json
 ```
 
 - Em desenvolvimento, o `npm run dev` roda **junto** com o `php artisan serve` —
-  dois terminais, os dois rodando.
+  dois terminais, os dois rodando. O `composer run dev` sobe os dois (mais o
+  worker de fila) de uma vez.
 - Em produção (ou sempre que o servidor de dev não estiver de pé), você precisa
   ter rodado `npm run build` pelo menos uma vez.
 
@@ -425,6 +489,8 @@ de conexão com o banco, ou migrations que nunca rodaram.
 - [Eloquent ORM](https://laravel.com/docs/eloquent)
 - [Templates Blade](https://laravel.com/docs/blade)
 - [Empacotamento de Assets (Vite)](https://laravel.com/docs/vite)
+- [Starter Kits](https://laravel.com/docs/starter-kits)
+- [Laravel Fortify](https://laravel.com/docs/fortify)
 - [Laravel Herd](https://herd.laravel.com/docs)
 - [Laravel Sail](https://laravel.com/docs/sail)
 - [Laravel Bootcamp](https://bootcamp.laravel.com)
