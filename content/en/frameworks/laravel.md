@@ -181,6 +181,7 @@ php artisan about                   # environment, versions, cache status
 
 ```bash
 php artisan make:model Post -mcr    # model + migration + controller + resource routes
+php artisan make:model Post -mfc    # model + migration + factory + controller
 php artisan make:model Post -m      # model + migration
 php artisan make:controller PostController --resource
 php artisan make:migration create_posts_table
@@ -195,6 +196,7 @@ php artisan make:command SyncPosts
 
 ```bash
 php artisan migrate                 # run pending migrations
+php artisan migrate --path=database/migrations/2024_01_01_000000_create_posts_table.php  # run one specific migration
 php artisan migrate:status          # what ran and what didn't
 php artisan migrate:rollback        # undo the last batch
 php artisan migrate:fresh --seed    # drop everything, re-migrate, seed
@@ -409,6 +411,46 @@ npm run build   # production: writes public/build/ + manifest.json
 - In production, or whenever the dev server isn't running, you must have
   run `npm run build` at least once.
 
+## Testing
+
+```bash
+php artisan make:test PostTest          # feature test, in tests/Feature
+php artisan make:test PostTest --unit   # unit test, in tests/Unit
+php artisan test                        # run the whole suite
+php artisan test --filter=PostTest      # run a single test class
+```
+
+```php
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+class PostTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_post_can_be_created(): void
+    {
+        $response = $this->post('/posts', ['title' => 'Hi', 'body' => '...']);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('posts', ['title' => 'Hi']);
+    }
+}
+```
+
+- **`RefreshDatabase` resets your database.** It migrates the schema before
+  the suite runs and wraps each test in a transaction that's rolled back
+  afterward, so tests don't see each other's data.
+- A fresh `phpunit.xml` points tests at `DB_CONNECTION=sqlite`,
+  `DB_DATABASE=:memory:`, an isolated database that's thrown away after
+  each run. If those lines are missing, commented out, or edited to point
+  at your real database, running tests **will wipe your local data**.
+- Check which database tests actually use with `phpunit.xml`, or run
+  `php artisan config:show database.default` (after `php artisan config:clear`)
+  inside the `testing` environment.
+- Unit tests (`tests/Unit`) don't boot the framework and can't touch the
+  database at all; feature tests (`tests/Feature`) do, and are where most
+  of your tests should live.
+
 ## Common Errors
 
 - `No application encryption key has been specified` — `APP_KEY` empty or
@@ -471,6 +513,8 @@ php artisan about                  # 5. env, DB connection, cache state
 - [Eloquent ORM](https://laravel.com/docs/eloquent)
 - [Blade Templates](https://laravel.com/docs/blade)
 - [Asset Bundling (Vite)](https://laravel.com/docs/vite)
+- [Testing](https://laravel.com/docs/testing)
+- [Database Testing](https://laravel.com/docs/database-testing)
 - [Starter Kits](https://laravel.com/docs/starter-kits)
 - [Laravel Fortify](https://laravel.com/docs/fortify)
 - [Laravel Herd](https://herd.laravel.com/docs)

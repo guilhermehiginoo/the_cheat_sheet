@@ -181,6 +181,7 @@ php artisan about                   # ambiente, versões, estado dos caches
 
 ```bash
 php artisan make:model Post -mcr    # model + migration + controller + rotas resource
+php artisan make:model Post -mfc    # model + migration + factory + controller
 php artisan make:model Post -m      # model + migration
 php artisan make:controller PostController --resource
 php artisan make:migration create_posts_table
@@ -195,6 +196,7 @@ php artisan make:command SyncPosts
 
 ```bash
 php artisan migrate                 # roda as migrations pendentes
+php artisan migrate --path=database/migrations/2024_01_01_000000_create_posts_table.php  # roda uma migration específica
 php artisan migrate:status          # o que rodou e o que não rodou
 php artisan migrate:rollback        # desfaz o último lote
 php artisan migrate:fresh --seed    # dropa tudo, re-migra e roda os seeders
@@ -409,6 +411,46 @@ npm run build   # produção: gera public/build/ + manifest.json
 - Em produção, ou sempre que o servidor de dev não estiver de pé, você
   precisa ter rodado `npm run build` pelo menos uma vez.
 
+## Testes
+
+```bash
+php artisan make:test PostTest          # teste de feature, em tests/Feature
+php artisan make:test PostTest --unit   # teste unitário, em tests/Unit
+php artisan test                        # roda toda a suíte
+php artisan test --filter=PostTest      # roda uma única classe de teste
+```
+
+```php
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+class PostTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_post_can_be_created(): void
+    {
+        $response = $this->post('/posts', ['title' => 'Hi', 'body' => '...']);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('posts', ['title' => 'Hi']);
+    }
+}
+```
+
+- **O `RefreshDatabase` reseta seu banco.** Ele migra o schema antes da
+  suíte rodar e envolve cada teste numa transação que é desfeita depois,
+  então um teste não vê os dados do outro.
+- Um `phpunit.xml` recém-criado aponta os testes para `DB_CONNECTION=sqlite`,
+  `DB_DATABASE=:memory:`, um banco isolado e descartado a cada execução. Se
+  essas linhas estiverem faltando, comentadas, ou editadas para apontar pro
+  seu banco de verdade, rodar os testes **vai apagar seus dados locais**.
+- Confira qual banco os testes realmente usam olhando o `phpunit.xml`, ou
+  rode `php artisan config:show database.default` (depois de
+  `php artisan config:clear`) dentro do ambiente `testing`.
+- Testes unitários (`tests/Unit`) não sobem a aplicação e não conseguem
+  tocar no banco; testes de feature (`tests/Feature`) sobem, e é ali que a
+  maioria dos seus testes deve morar.
+
 ## Erros Comuns
 
 - `No application encryption key has been specified` — `APP_KEY` vazia ou
@@ -471,6 +513,8 @@ php artisan about                  # 5. ambiente, conexão com o banco, caches
 - [Eloquent ORM](https://laravel.com/docs/eloquent)
 - [Templates Blade](https://laravel.com/docs/blade)
 - [Empacotamento de Assets (Vite)](https://laravel.com/docs/vite)
+- [Testing](https://laravel.com/docs/testing)
+- [Database Testing](https://laravel.com/docs/database-testing)
 - [Starter Kits](https://laravel.com/docs/starter-kits)
 - [Laravel Fortify](https://laravel.com/docs/fortify)
 - [Laravel Herd](https://herd.laravel.com/docs)
