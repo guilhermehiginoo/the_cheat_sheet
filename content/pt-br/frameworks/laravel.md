@@ -99,8 +99,9 @@ herd php -v                # o binário PHP gerenciado pelo Herd
 herd open                  # abre o projeto atual no navegador
 ```
 
-- Um app nativo com PHP, Composer e nginx. Projetos num diretório
-  "parkeado" são servidos automaticamente em `<pasta>.test`.
+- O [Herd](https://herd.laravel.com) é um app nativo com PHP, Composer e
+  nginx. Projetos num diretório "parkeado" são servidos automaticamente em
+  `<pasta>.test`.
 - Troque a versão do PHP por projeto pela interface ou com `herd use php@8.3`.
 - O Herd já traz os binários `php`, `composer`, `laravel`, `node`, `npm` e
   `nvm`; por isso o `node` pode não aparecer no `PATH` fora do seu shell.

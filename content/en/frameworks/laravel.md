@@ -99,8 +99,9 @@ herd php -v                # the PHP binary Herd manages
 herd open                  # open the current project in the browser
 ```
 
-- A native app bundling PHP, Composer, and nginx. Projects in a parked
-  directory are served automatically at `<folder>.test`.
+- [Herd](https://herd.laravel.com) is a native app bundling PHP, Composer,
+  and nginx. Projects in a parked directory are served automatically at
+  `<folder>.test`.
 - Switch PHP versions per project from the UI or `herd use php@8.3`.
 - Herd bundles the `php`, `composer`, `laravel`, `node`, `npm`, and `nvm`
   binaries; that's why `node` may be missing from your `PATH` elsewhere.
