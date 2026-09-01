@@ -44,11 +44,11 @@ O `laravel new` pergunta qual starter kit você quer: uma aplicação Laravel
 normal que já vem com autenticação e um frontend montado, tudo dentro do seu
 projeto para você editar.
 
-- **React**: Inertia, React 19, TypeScript, Tailwind, [shadcn/ui](https://ui.shadcn.com). Frontend em `resources/js/`.
-- **Vue**: Inertia, Vue 3 Composition API, TypeScript, Tailwind, shadcn-vue. Frontend em `resources/js/`.
-- **Svelte**: Inertia, Svelte 5, TypeScript, Tailwind, shadcn-svelte. Frontend em `resources/js/`.
-- **Livewire**: Livewire, Tailwind, [Flux UI](https://fluxui.dev). Sem framework JS, tudo em Blade e PHP. Frontend em `resources/views/`.
-- **Nenhum**: o esqueleto puro, para aprender o framework ou construir uma API.
+- **React** — Inertia, React 19, TypeScript, Tailwind, [shadcn/ui](https://ui.shadcn.com). Frontend em `resources/js/`.
+- **Vue** — Inertia, Vue 3 Composition API, TypeScript, Tailwind, shadcn-vue. Frontend em `resources/js/`.
+- **Svelte** — Inertia, Svelte 5, TypeScript, Tailwind, shadcn-svelte. Frontend em `resources/js/`.
+- **Livewire** — Livewire, Tailwind, [Flux UI](https://fluxui.dev). Sem framework JS, tudo em Blade e PHP. Frontend em `resources/views/`.
+- **Nenhum** — o esqueleto puro, para aprender o framework ou construir uma API.
 
 ```bash
 laravel new meu-app                            # pergunta qual kit
@@ -57,9 +57,9 @@ laravel new meu-app --using=vendor/starter-kit # kit da comunidade, via Packagis
 
 - Os kits React, Vue e Svelte usam Inertia, mantendo o roteamento e os
   controllers no servidor, sem camada de API separada.
-- **Teams**: uma opção no mesmo prompt. Adiciona telas de gerenciamento de
+- **Teams** — uma opção no mesmo prompt. Adiciona telas de gerenciamento de
   times e rotas escopadas por time (`/{current_team}/dashboard`).
-- **WorkOS AuthKit**: outra opção. Troca a autenticação nativa por um
+- **WorkOS AuthKit** — outra opção. Troca a autenticação nativa por um
   provedor hospedado, com login social, passkeys, magic link e SSO. Precisa
   de `WORKOS_CLIENT_ID`, `WORKOS_API_KEY` e `WORKOS_REDIRECT_URL` no `.env`.
 
@@ -143,10 +143,10 @@ Requisição → routes/web.php → Controller → Model (Eloquent) → Banco
                           View (Blade) → Resposta
 ```
 
-- **Rota** (`routes/web.php`, `api.php`): liga uma URL e um verbo HTTP a um código.
-- **Controller** (`app/Http/Controllers/`): recebe a requisição, orquestra, responde.
-- **Model** (`app/Models/`): representa uma tabela, guarda queries e relações.
-- **View** (`resources/views/`): templates Blade que renderizam o HTML.
+- **Rota** (`routes/web.php`, `api.php`) — liga uma URL e um verbo HTTP a um código.
+- **Controller** (`app/Http/Controllers/`) — recebe a requisição, orquestra, responde.
+- **Model** (`app/Models/`) — representa uma tabela, guarda queries e relações.
+- **View** (`resources/views/`) — templates Blade que renderizam o HTML.
 
 ```text
 app/Http/Middleware/     # código que roda antes/depois de cada requisição
@@ -410,44 +410,44 @@ npm run build   # produção: gera public/build/ + manifest.json
 
 ## Erros Comuns
 
-- `No application encryption key has been specified`: `APP_KEY` vazia ou
+- `No application encryption key has been specified` — `APP_KEY` vazia ou
   `.env` faltando. Correção: `cp .env.example .env && php artisan key:generate`.
-- Página em branco ou **500** genérico: o erro real está escondido. Ponha
+- Página em branco ou **500** genérico — o erro real está escondido. Ponha
   `APP_DEBUG=true` no `.env`, ou leia `storage/logs/laravel.log`.
-- `SQLSTATE[HY000] [2002] Connection refused`: o banco não está rodando,
+- `SQLSTATE[HY000] [2002] Connection refused` — o banco não está rodando,
   ou `DB_HOST`/`DB_PORT` no `.env` estão errados.
-- `SQLSTATE[HY000] [1045] Access denied for user`: `DB_USERNAME`/`DB_PASSWORD`
+- `SQLSTATE[HY000] [1045] Access denied for user` — `DB_USERNAME`/`DB_PASSWORD`
   errados. Ajuste e rode `php artisan config:clear`.
-- `SQLSTATE[42S02] Base table or view not found`: as migrations nunca
+- `SQLSTATE[42S02] Base table or view not found` — as migrations nunca
   rodaram. Correção: `php artisan migrate`.
-- `Unable to open database file` (SQLite): o arquivo não existe. Correção:
+- `Unable to open database file` (SQLite) — o arquivo não existe. Correção:
   `touch database/database.sqlite`.
-- `Vite manifest not found at public/build/manifest.json`: assets nunca
+- `Vite manifest not found at public/build/manifest.json` — assets nunca
   foram buildados e o dev server está desligado. Correção: `npm run build`,
   ou rode `npm run dev`.
-- Página carrega mas sem CSS/JS: o `npm run dev` parou. Reinicie, ou rode
+- Página carrega mas sem CSS/JS — o `npm run dev` parou. Reinicie, ou rode
   `npm run build`.
-- **419** Page Expired: falta `@csrf` ou a sessão expirou. Adicione `@csrf`
+- **419** Page Expired — falta `@csrf` ou a sessão expirou. Adicione `@csrf`
   no formulário, ou limpe os cookies.
-- **404** numa rota que você acabou de criar: rotas cacheadas, ou verbo
+- **404** numa rota que você acabou de criar — rotas cacheadas, ou verbo
   errado. Rode `php artisan route:clear`, depois confira `php artisan route:list`.
-- `Target class [FooController] does not exist`: namespace errado ou typo
+- `Target class [FooController] does not exist` — namespace errado ou typo
   na rota. Importe o controller e use `[FooController::class, 'metodo']`.
-- `Class "App\Models\Post" not found`: autoloader desatualizado. Correção:
+- `Class "App\Models\Post" not found` — autoloader desatualizado. Correção:
   `composer dump-autoload`.
-- Mudança no `.env` não surte efeito: config está cacheada. Correção:
+- Mudança no `.env` não surte efeito — config está cacheada. Correção:
   `php artisan config:clear` (ou `optimize:clear`).
-- `The stream or file .../laravel.log could not be opened`: sem permissão
+- `The stream or file .../laravel.log could not be opened` — sem permissão
   de escrita. Correção: `chmod -R 775 storage bootstrap/cache`.
-- Imagens enviadas dão 404 em `/storage/...`: falta o symlink. Correção:
+- Imagens enviadas dão 404 em `/storage/...` — falta o symlink. Correção:
   `php artisan storage:link`.
-- `Add [title] to fillable property`: mass assignment bloqueado. Adicione
+- `Add [title] to fillable property` — mass assignment bloqueado. Adicione
   a coluna ao `$fillable` do model.
-- `Attempt to read property on null`: uma query retornou `null`. Use
+- `Attempt to read property on null` — uma query retornou `null`. Use
   `findOrFail()`, ou proteja com `@if`/`?->`.
-- `composer install` falha em `ext-...`: uma extensão do PHP está
+- `composer install` falha em `ext-...` — uma extensão do PHP está
   faltando. Instale (ex.: `php-mbstring`, `php-xml`, `php-curl`).
-- Usando Sail, `Connection refused` em `127.0.0.1`: o comando rodou no
+- Usando Sail, `Connection refused` em `127.0.0.1` — o comando rodou no
   host, ou `DB_HOST` está errado. Prefixe com `sail`; use `DB_HOST=mysql`.
 
 ### A Ordem de Depuração

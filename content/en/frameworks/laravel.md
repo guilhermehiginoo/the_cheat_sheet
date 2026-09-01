@@ -44,11 +44,11 @@ composer run dev    # server + queue worker + Vite, all in one terminal
 already ships authentication and a scaffolded frontend, fully inside your
 project for you to edit.
 
-- **React**: Inertia, React 19, TypeScript, Tailwind, [shadcn/ui](https://ui.shadcn.com). Frontend in `resources/js/`.
-- **Vue**: Inertia, Vue 3 Composition API, TypeScript, Tailwind, shadcn-vue. Frontend in `resources/js/`.
-- **Svelte**: Inertia, Svelte 5, TypeScript, Tailwind, shadcn-svelte. Frontend in `resources/js/`.
-- **Livewire**: Livewire, Tailwind, [Flux UI](https://fluxui.dev). No JS framework, all Blade and PHP. Frontend in `resources/views/`.
-- **None**: the plain skeleton, for learning the framework or building an API.
+- **React** — Inertia, React 19, TypeScript, Tailwind, [shadcn/ui](https://ui.shadcn.com). Frontend in `resources/js/`.
+- **Vue** — Inertia, Vue 3 Composition API, TypeScript, Tailwind, shadcn-vue. Frontend in `resources/js/`.
+- **Svelte** — Inertia, Svelte 5, TypeScript, Tailwind, shadcn-svelte. Frontend in `resources/js/`.
+- **Livewire** — Livewire, Tailwind, [Flux UI](https://fluxui.dev). No JS framework, all Blade and PHP. Frontend in `resources/views/`.
+- **None** — the plain skeleton, for learning the framework or building an API.
 
 ```bash
 laravel new my-app                            # prompts for the kit
@@ -57,9 +57,9 @@ laravel new my-app --using=vendor/starter-kit # a community kit from Packagist
 
 - The React, Vue, and Svelte kits use Inertia to keep server-side routing and
   controllers, with no separate API layer.
-- **Teams**: an option in the same prompt. Adds team management screens and
+- **Teams** — an option in the same prompt. Adds team management screens and
   team-scoped routes (`/{current_team}/dashboard`).
-- **WorkOS AuthKit**: another option. Swaps the built-in auth for a hosted
+- **WorkOS AuthKit** — another option. Swaps the built-in auth for a hosted
   provider with social login, passkeys, magic links, and SSO. Needs
   `WORKOS_CLIENT_ID`, `WORKOS_API_KEY`, and `WORKOS_REDIRECT_URL` in `.env`.
 
@@ -143,10 +143,10 @@ Request → routes/web.php → Controller → Model (Eloquent) → Database
                         View (Blade) → Response
 ```
 
-- **Route** (`routes/web.php`, `api.php`): maps a URL and HTTP verb to code.
-- **Controller** (`app/Http/Controllers/`): receives the request, orchestrates, responds.
-- **Model** (`app/Models/`): represents a table, holds queries and relations.
-- **View** (`resources/views/`): Blade templates that render HTML.
+- **Route** (`routes/web.php`, `api.php`) — maps a URL and HTTP verb to code.
+- **Controller** (`app/Http/Controllers/`) — receives the request, orchestrates, responds.
+- **Model** (`app/Models/`) — represents a table, holds queries and relations.
+- **View** (`resources/views/`) — Blade templates that render HTML.
 
 ```text
 app/Http/Middleware/     # code that runs before/after every request
@@ -410,44 +410,44 @@ npm run build   # production: writes public/build/ + manifest.json
 
 ## Common Errors
 
-- `No application encryption key has been specified`: `APP_KEY` empty or
+- `No application encryption key has been specified` — `APP_KEY` empty or
   `.env` missing. Fix: `cp .env.example .env && php artisan key:generate`.
-- Blank page or a generic **500**: the real error is hidden. Set
+- Blank page or a generic **500** — the real error is hidden. Set
   `APP_DEBUG=true` in `.env`, or read `storage/logs/laravel.log`.
-- `SQLSTATE[HY000] [2002] Connection refused`: the database isn't running,
+- `SQLSTATE[HY000] [2002] Connection refused` — the database isn't running,
   or `DB_HOST`/`DB_PORT` in `.env` are wrong.
-- `SQLSTATE[HY000] [1045] Access denied for user`: wrong `DB_USERNAME` /
+- `SQLSTATE[HY000] [1045] Access denied for user` — wrong `DB_USERNAME` /
   `DB_PASSWORD`. Fix them, then `php artisan config:clear`.
-- `SQLSTATE[42S02] Base table or view not found`: migrations never ran.
+- `SQLSTATE[42S02] Base table or view not found` — migrations never ran.
   Fix: `php artisan migrate`.
-- `Unable to open database file` (SQLite): the file doesn't exist. Fix:
+- `Unable to open database file` (SQLite) — the file doesn't exist. Fix:
   `touch database/database.sqlite`.
-- `Vite manifest not found at public/build/manifest.json`: assets were
+- `Vite manifest not found at public/build/manifest.json` — assets were
   never built and the dev server is off. Fix: `npm run build`, or run
   `npm run dev`.
-- Page loads but CSS/JS is missing: `npm run dev` stopped. Restart it, or
+- Page loads but CSS/JS is missing — `npm run dev` stopped. Restart it, or
   run `npm run build`.
-- **419** Page Expired: missing `@csrf` or an expired session. Add `@csrf`
+- **419** Page Expired — missing `@csrf` or an expired session. Add `@csrf`
   to the form, or clear cookies.
-- **404** on a route you just added: cached routes, or the wrong verb.
+- **404** on a route you just added — cached routes, or the wrong verb.
   Run `php artisan route:clear`, then check `php artisan route:list`.
-- `Target class [FooController] does not exist`: wrong namespace or a typo
+- `Target class [FooController] does not exist` — wrong namespace or a typo
   in the route. Import the controller and use `[FooController::class, 'method']`.
-- `Class "App\Models\Post" not found`: autoloader out of date. Fix:
+- `Class "App\Models\Post" not found` — autoloader out of date. Fix:
   `composer dump-autoload`.
-- `.env` change has no effect: config is cached. Fix: `php artisan config:clear`
+- `.env` change has no effect — config is cached. Fix: `php artisan config:clear`
   (or `optimize:clear`).
-- `The stream or file .../laravel.log could not be opened`: no write
+- `The stream or file .../laravel.log could not be opened` — no write
   permission. Fix: `chmod -R 775 storage bootstrap/cache`.
-- Uploaded images 404 in `/storage/...`: the symlink is missing. Fix:
+- Uploaded images 404 in `/storage/...` — the symlink is missing. Fix:
   `php artisan storage:link`.
-- `Add [title] to fillable property`: mass assignment blocked. Add the
+- `Add [title] to fillable property` — mass assignment blocked. Add the
   column to `$fillable` on the model.
-- `Attempt to read property on null`: a query returned `null`. Use
+- `Attempt to read property on null` — a query returned `null`. Use
   `findOrFail()`, or guard with `@if` / `?->`.
-- `composer install` fails on `ext-...`: a PHP extension is missing.
+- `composer install` fails on `ext-...` — a PHP extension is missing.
   Install it (e.g. `php-mbstring`, `php-xml`, `php-curl`).
-- Using Sail, `Connection refused` on `127.0.0.1`: the command ran on the
+- Using Sail, `Connection refused` on `127.0.0.1` — the command ran on the
   host, or `DB_HOST` is wrong. Prefix with `sail`; set `DB_HOST=mysql`.
 
 ### The Debugging Order
