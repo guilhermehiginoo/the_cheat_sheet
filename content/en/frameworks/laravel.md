@@ -317,6 +317,146 @@ Post::with('comments')->get();         // eager load, avoids the N+1 problem
   silently missing column is almost always a missing `$fillable` entry.
 - Model `Post` maps to table `posts` by convention (plural, snake_case).
 
+```php
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Post extends Model
+{
+    use SoftDeletes;   // needs a nullable deleted_at column, see Migrations
+}
+
+$post->delete();              // sets deleted_at, keeps the row
+$post->trashed();             // true if soft deleted
+$post->restore();             // clears deleted_at
+$post->forceDelete();         // actually removes the row
+
+Post::withTrashed()->get();   // include soft-deleted rows
+Post::onlyTrashed()->get();   // only soft-deleted rows
+```
+
+- `SoftDeletes` marks a row deleted instead of removing it. Every normal
+  query excludes trashed rows automatically, so nothing else in the app
+  has to filter them out.
+- Add the column with `$table->softDeletes()` in a migration.
+
+## Clean Models
+
+```php
+class Order extends Model
+{
+    public function isPaid(): bool
+    {
+        return $this->status === 'paid';
+    }
+}
+
+if ($order->isPaid()) {
+    // ...
+}
+```
+
+- Logic used in more than one place, a controller, a job, a view, belongs
+  on the model as a method, not copy-pasted at every call site.
+
+```php
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Hash;
+
+class User extends Model
+{
+    protected function fullName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => "{$this->first_name} {$this->last_name}",
+        );
+    }
+
+    protected function password(): Attribute
+    {
+        return Attribute::make(
+            set: fn (string $value) => Hash::make($value),
+        );
+    }
+}
+
+$user->full_name;            // read like a column, no parentheses
+$user->password = 'secret';  // hashed automatically on assignment
+```
+
+- Access an accessor as `$user->full_name`, not `$user->fullName()`. A
+  caller shouldn't need to know whether an attribute is a real column or
+  computed; both should look the same.
+- The method is camelCase (`fullName`); Eloquent exposes it as the
+  snake_case attribute (`full_name`).
+
+```php
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
+
+class Post extends Model
+{
+    #[Scope]
+    protected function published(Builder $query): void
+    {
+        $query->where('published', true);
+    }
+}
+
+Post::published()->latest()->get();
+Post::published()->where('user_id', $userId)->get();
+```
+
+- A `where` clause repeated across several controllers is a sign it
+  belongs in a scope instead, chainable like any other query method.
+
+```blade
+{{-- Avoid --}}
+@php
+    $total = 0;
+    foreach ($order->items as $item) {
+        $total += $item->price * $item->quantity;
+    }
+@endphp
+<p>Total: {{ $total }}</p>
+
+{{-- Prefer --}}
+<p>Total: {{ $order->total }}</p>
+```
+
+- `@php` / `@endphp` in a view is usually a sign the logic belongs on the
+  model instead, as an accessor, a scope, or a dedicated method.
+
+```php
+// app/Services/OrderService.php
+class OrderService
+{
+    public function checkout(User $user, array $items): Order
+    {
+        // create the order, charge payment, send the confirmation email...
+    }
+}
+
+// app/Http/Controllers/OrderController.php
+class OrderController extends Controller
+{
+    public function __construct(private OrderService $orderService) {}
+
+    public function store(Request $request)
+    {
+        $order = $this->orderService->checkout($request->user(), $request->validated());
+
+        return redirect()->route('orders.show', $order);
+    }
+}
+```
+
+- When a controller method starts coordinating several models, a payment,
+  a notification, move that logic into a Service class injected through
+  the constructor. The controller stays a thin coordinator: receive the
+  request, delegate, respond.
+- Laravel doesn't ship a `make:service` command; a service is just a plain
+  class, conventionally under `app/Services/`.
+
 ## Migrations
 
 ```php
@@ -451,6 +591,91 @@ class PostTest extends TestCase
   database at all; feature tests (`tests/Feature`) do, and are where most
   of your tests should live.
 
+## Jobs, Commands, and Scheduling
+
+```bash
+php artisan make:job ProcessPodcast
+```
+
+```php
+namespace App\Jobs;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+
+class ProcessPodcast implements ShouldQueue
+{
+    use Queueable;
+
+    public function __construct(public Podcast $podcast) {}
+
+    public function handle(): void
+    {
+        // transcode the podcast, generate a thumbnail...
+    }
+}
+
+ProcessPodcast::dispatch($podcast);       // pushed to the queue
+ProcessPodcast::dispatchSync($podcast);   // runs immediately, no queue
+```
+
+- A **job** is work that shouldn't block the request: sending an email,
+  processing a file, calling a slow API. `dispatch()` queues it; a worker
+  (`php artisan queue:work`) picks it up and runs `handle()`.
+- Needs a queue connection in `.env` (`QUEUE_CONNECTION=database`, `redis`,
+  etc). `sync`, the default in a fresh install, runs jobs immediately with
+  no real queueing, useful for local development.
+
+```bash
+php artisan make:command SendEmails
+```
+
+```php
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+
+class SendEmails extends Command
+{
+    protected $signature = 'emails:send {user}';
+    protected $description = 'Send a batch of emails to a user';
+
+    public function handle(): void
+    {
+        $this->info("Sending emails to user #{$this->argument('user')}...");
+    }
+}
+```
+
+```bash
+php artisan emails:send 1
+```
+
+- A **command** is anything you want to run from the CLI: a one-off
+  script, a maintenance task, something you'll also want to schedule.
+  Commands in `app/Console/Commands` are discovered automatically.
+
+```php
+// routes/console.php
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('emails:send 1')->daily();
+Schedule::job(new ProcessPodcast($podcast))->everyFiveMinutes();
+Schedule::call(fn () => Log::info('Heartbeat'))->everyMinute();
+```
+
+- The **scheduler** replaces per-task cron entries with code, defined in
+  `routes/console.php`. The server needs only one cron line, running
+  every minute:
+
+```bash
+* * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+- Locally, skip the cron entry and run `php artisan schedule:work`
+  instead; it loops in the foreground and fires due tasks every minute.
+- `php artisan schedule:list` shows every scheduled task and its next run time.
+
 ## Common Errors
 
 - `No application encryption key has been specified` — `APP_KEY` empty or
@@ -510,7 +735,11 @@ php artisan about                  # 5. env, DB connection, cache state
 
 - [Laravel Documentation](https://laravel.com/docs)
 - [Artisan Console](https://laravel.com/docs/artisan)
+- [Queues](https://laravel.com/docs/queues)
+- [Task Scheduling](https://laravel.com/docs/scheduling)
 - [Eloquent ORM](https://laravel.com/docs/eloquent)
+- [Eloquent Mutators and Accessors](https://laravel.com/docs/eloquent-mutators)
+- [Eloquent Local Scopes](https://laravel.com/docs/eloquent#local-scopes)
 - [Blade Templates](https://laravel.com/docs/blade)
 - [Asset Bundling (Vite)](https://laravel.com/docs/vite)
 - [Testing](https://laravel.com/docs/testing)

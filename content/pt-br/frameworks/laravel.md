@@ -317,6 +317,146 @@ Post::with('comments')->get();         // eager loading, evita o problema N+1
   coluna que "sumiu" silenciosamente quase sempre é um `$fillable` incompleto.
 - O model `Post` mapeia para a tabela `posts` por convenção (plural, snake_case).
 
+```php
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Post extends Model
+{
+    use SoftDeletes;   // precisa de uma coluna deleted_at anulável, veja Migrations
+}
+
+$post->delete();              // marca deleted_at, mantém a linha
+$post->trashed();             // true se foi soft deleted
+$post->restore();             // limpa o deleted_at
+$post->forceDelete();         // remove a linha de verdade
+
+Post::withTrashed()->get();   // inclui linhas soft deleted
+Post::onlyTrashed()->get();   // só as linhas soft deleted
+```
+
+- `SoftDeletes` marca a linha como deletada em vez de removê-la. Toda
+  query normal exclui as linhas deletadas automaticamente, então nada
+  mais no app precisa filtrar isso na mão.
+- Adicione a coluna com `$table->softDeletes()` numa migration.
+
+## Models Limpos
+
+```php
+class Order extends Model
+{
+    public function isPaid(): bool
+    {
+        return $this->status === 'paid';
+    }
+}
+
+if ($order->isPaid()) {
+    // ...
+}
+```
+
+- Lógica usada em mais de um lugar, um controller, um job, uma view,
+  pertence ao model como método, não copiada e colada em cada chamada.
+
+```php
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Hash;
+
+class User extends Model
+{
+    protected function fullName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => "{$this->first_name} {$this->last_name}",
+        );
+    }
+
+    protected function password(): Attribute
+    {
+        return Attribute::make(
+            set: fn (string $value) => Hash::make($value),
+        );
+    }
+}
+
+$user->full_name;            // acessado como uma coluna, sem parênteses
+$user->password = 'secret';  // já sai com hash ao ser atribuído
+```
+
+- Acesse um accessor como `$user->full_name`, não `$user->fullName()`.
+  Quem chama não precisa saber se um atributo é uma coluna de verdade ou
+  calculado; os dois devem parecer iguais.
+- O método é camelCase (`fullName`); o Eloquent expõe como o atributo
+  snake_case (`full_name`).
+
+```php
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
+
+class Post extends Model
+{
+    #[Scope]
+    protected function published(Builder $query): void
+    {
+        $query->where('published', true);
+    }
+}
+
+Post::published()->latest()->get();
+Post::published()->where('user_id', $userId)->get();
+```
+
+- Um `where` repetido em vários controllers é sinal de que ele pertence a
+  um scope, encadeável como qualquer outro método de query.
+
+```blade
+{{-- Evite --}}
+@php
+    $total = 0;
+    foreach ($order->items as $item) {
+        $total += $item->price * $item->quantity;
+    }
+@endphp
+<p>Total: {{ $total }}</p>
+
+{{-- Prefira --}}
+<p>Total: {{ $order->total }}</p>
+```
+
+- `@php` / `@endphp` numa view geralmente é sinal de que a lógica pertence
+  ao model, como um accessor, um scope, ou um método dedicado.
+
+```php
+// app/Services/OrderService.php
+class OrderService
+{
+    public function checkout(User $user, array $items): Order
+    {
+        // cria o pedido, cobra o pagamento, envia o e-mail de confirmação...
+    }
+}
+
+// app/Http/Controllers/OrderController.php
+class OrderController extends Controller
+{
+    public function __construct(private OrderService $orderService) {}
+
+    public function store(Request $request)
+    {
+        $order = $this->orderService->checkout($request->user(), $request->validated());
+
+        return redirect()->route('orders.show', $order);
+    }
+}
+```
+
+- Quando um método de controller começa a coordenar vários models, um
+  pagamento, uma notificação, mova essa lógica pra uma Service injetada
+  pelo construtor. O controller fica um coordenador magro: recebe a
+  requisição, delega, responde.
+- O Laravel não vem com um comando `make:service`; uma service é só uma
+  classe comum, por convenção dentro de `app/Services/`.
+
 ## Migrations
 
 ```php
@@ -451,6 +591,93 @@ class PostTest extends TestCase
   tocar no banco; testes de feature (`tests/Feature`) sobem, e é ali que a
   maioria dos seus testes deve morar.
 
+## Jobs, Commands e Scheduler
+
+```bash
+php artisan make:job ProcessPodcast
+```
+
+```php
+namespace App\Jobs;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+
+class ProcessPodcast implements ShouldQueue
+{
+    use Queueable;
+
+    public function __construct(public Podcast $podcast) {}
+
+    public function handle(): void
+    {
+        // transcodifica o podcast, gera a thumbnail...
+    }
+}
+
+ProcessPodcast::dispatch($podcast);       // empurrado pra fila
+ProcessPodcast::dispatchSync($podcast);   // roda na hora, sem fila
+```
+
+- Um **job** é um trabalho que não deveria travar a requisição: enviar um
+  e-mail, processar um arquivo, chamar uma API lenta. `dispatch()`
+  coloca na fila; um worker (`php artisan queue:work`) pega e roda o `handle()`.
+- Precisa de uma conexão de fila no `.env` (`QUEUE_CONNECTION=database`,
+  `redis`, etc). O `sync`, padrão num projeto novo, roda os jobs na hora
+  sem fila de verdade, útil em desenvolvimento local.
+
+```bash
+php artisan make:command SendEmails
+```
+
+```php
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+
+class SendEmails extends Command
+{
+    protected $signature = 'emails:send {user}';
+    protected $description = 'Send a batch of emails to a user';
+
+    public function handle(): void
+    {
+        $this->info("Sending emails to user #{$this->argument('user')}...");
+    }
+}
+```
+
+```bash
+php artisan emails:send 1
+```
+
+- Um **command** é qualquer coisa que você quer rodar pela CLI: um script
+  avulso, uma tarefa de manutenção, algo que você também vai querer
+  agendar. Commands em `app/Console/Commands` são descobertos automaticamente.
+
+```php
+// routes/console.php
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('emails:send 1')->daily();
+Schedule::job(new ProcessPodcast($podcast))->everyFiveMinutes();
+Schedule::call(fn () => Log::info('Heartbeat'))->everyMinute();
+```
+
+- O **scheduler** substitui uma entrada de cron por tarefa por código,
+  definido em `routes/console.php`. O servidor só precisa de uma linha de
+  cron, rodando a cada minuto:
+
+```bash
+* * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+- Localmente, pule a entrada de cron e rode `php artisan schedule:work`
+  no lugar; ele fica em loop no terminal e dispara as tarefas devidas a
+  cada minuto.
+- `php artisan schedule:list` mostra toda tarefa agendada e a próxima
+  hora que ela vai rodar.
+
 ## Erros Comuns
 
 - `No application encryption key has been specified` — `APP_KEY` vazia ou
@@ -510,7 +737,11 @@ php artisan about                  # 5. ambiente, conexão com o banco, caches
 
 - [Documentação do Laravel](https://laravel.com/docs)
 - [Artisan Console](https://laravel.com/docs/artisan)
+- [Queues](https://laravel.com/docs/queues)
+- [Task Scheduling](https://laravel.com/docs/scheduling)
 - [Eloquent ORM](https://laravel.com/docs/eloquent)
+- [Eloquent Mutators and Accessors](https://laravel.com/docs/eloquent-mutators)
+- [Eloquent Local Scopes](https://laravel.com/docs/eloquent#local-scopes)
 - [Templates Blade](https://laravel.com/docs/blade)
 - [Empacotamento de Assets (Vite)](https://laravel.com/docs/vite)
 - [Testing](https://laravel.com/docs/testing)
