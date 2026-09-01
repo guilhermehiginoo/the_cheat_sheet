@@ -11,16 +11,12 @@ tags:
 ## Criando um Projeto
 
 ```bash
-# Criar um projeto novo (o Composer é o único requisito obrigatório)
-composer create-project laravel/laravel meu-app
+composer create-project laravel/laravel meu-app   # criar um projeto novo
 cd meu-app
 
-# Ou, com o instalador do Laravel
-composer global require laravel/installer
-laravel new meu-app
+composer global require laravel/installer   # ou instale o instalador uma vez
+laravel new meu-app                         # e crie projetos com ele
 ```
-
-Todo clone de um projeto existente precisa dos mesmos quatro passos:
 
 ```bash
 composer install          # instala as dependências PHP (vendor/ está no gitignore)
@@ -29,56 +25,46 @@ php artisan key:generate  # escreve a APP_KEY no .env
 php artisan migrate       # cria as tabelas no banco
 ```
 
-Depois, suba os dois servidores que você precisa em desenvolvimento:
-
 ```bash
 composer run dev    # servidor + worker de fila + Vite, tudo num terminal só
 ```
 
-Ou suba as peças na mão, em terminais separados:
-
-```bash
-php artisan serve   # aplicação PHP em http://127.0.0.1:8000
-npm install         # só na primeira vez
-npm run dev         # servidor Vite para CSS/JS
-```
-
+- Os quatro passos `composer install` → `migrate` acima são o que um clone
+  de um projeto existente precisa.
 - O `.env` **não** é commitado, por isso um projeto clonado não tem nenhum.
-- A `APP_KEY` é usada para criptografar sessões e cookies. Sem ela, nada sobe.
-- `php artisan serve` é só para desenvolvimento; produção roda atrás de Nginx/Apache ou FrankenPHP.
+- A `APP_KEY` criptografa sessões e cookies. Sem ela, nada sobe.
+- `composer run dev` (ou só `php artisan serve`) é para desenvolvimento;
+  produção roda atrás de Nginx/Apache ou FrankenPHP.
 - Um projeto novo já vem com SQLite: o `laravel new` cria o
   `database/database.sqlite` e roda as migrations sozinho.
 
 ## Starter Kits
 
-O `laravel new` pergunta qual starter kit você quer. Um starter kit é uma
-aplicação Laravel normal que já vem com autenticação (login, cadastro,
-recuperação de senha, verificação de e-mail, dois fatores) mais um frontend
-montado. Todo esse código fica **dentro do seu projeto**, então ele é seu e você
-edita à vontade; não existe atualização de kit depois.
+O `laravel new` pergunta qual starter kit você quer: uma aplicação Laravel
+normal que já vem com autenticação e um frontend montado, tudo dentro do seu
+projeto para você editar.
 
 - **React**: Inertia, React 19, TypeScript, Tailwind, [shadcn/ui](https://ui.shadcn.com). Frontend em `resources/js/`.
 - **Vue**: Inertia, Vue 3 Composition API, TypeScript, Tailwind, shadcn-vue. Frontend em `resources/js/`.
 - **Svelte**: Inertia, Svelte 5, TypeScript, Tailwind, shadcn-svelte. Frontend em `resources/js/`.
-- **Livewire**: Livewire + Tailwind + [Flux UI](https://fluxui.dev), UI reativa escrita em PHP, sem framework JS. Frontend em `resources/views/`.
-- **Nenhum**: o esqueleto puro. Escolha esse para aprender o framework em si, ou quando for construir uma API.
-
-Os três kits com Inertia deixam você escrever componentes React/Vue/Svelte
-mantendo o roteamento e os controllers no servidor, sem precisar de uma camada
-de API separada. O Livewire é a escolha se você prefere ficar no Blade e no PHP.
+- **Livewire**: Livewire, Tailwind, [Flux UI](https://fluxui.dev). Sem framework JS, tudo em Blade e PHP. Frontend em `resources/views/`.
+- **Nenhum**: o esqueleto puro, para aprender o framework ou construir uma API.
 
 ```bash
 laravel new meu-app                            # pergunta qual kit
 laravel new meu-app --using=vendor/starter-kit # kit da comunidade, via Packagist
 ```
 
-Cada kit ainda oferece duas opções no mesmo prompt:
+- Os kits React, Vue e Svelte usam Inertia, mantendo o roteamento e os
+  controllers no servidor, sem camada de API separada.
+- **Teams**: uma opção no mesmo prompt. Adiciona telas de gerenciamento de
+  times e rotas escopadas por time (`/{current_team}/dashboard`).
+- **WorkOS AuthKit**: outra opção. Troca a autenticação nativa por um
+  provedor hospedado, com login social, passkeys, magic link e SSO. Precisa
+  de `WORKOS_CLIENT_ID`, `WORKOS_API_KEY` e `WORKOS_REDIRECT_URL` no `.env`.
 
-- **Teams**: usuários pertencem a times, com telas de gerenciamento e rotas escopadas por time (`/{current_team}/dashboard`).
-- **WorkOS AuthKit**: troca a autenticação nativa por um provedor hospedado, com login social, passkeys, magic link e SSO. Precisa de `WORKOS_CLIENT_ID`, `WORKOS_API_KEY` e `WORKOS_REDIRECT_URL` no `.env`.
-
-A autenticação de todos os kits é feita pelo **Laravel Fortify**, que registra
-as rotas por você. Ligue e desligue funcionalidades em `config/fortify.php`:
+Todo kit usa o **Laravel Fortify** para autenticação, configurado em
+`config/fortify.php`:
 
 ```php
 use Laravel\Fortify\Features;
@@ -91,28 +77,20 @@ use Laravel\Fortify\Features;
 ],
 ```
 
-- A lógica de cadastro fica em `app/Actions/Fortify/CreateNewUser.php`, e é ali
-  que você adiciona campos extras ao formulário de registro.
-- Nos kits com Inertia, desligar uma funcionalidade exige também remover as
-  referências às rotas dela nos componentes, senão o build do frontend quebra.
-- **Breeze** e **Jetstream** eram a geração anterior de starter kits. Muito
-  tutorial ainda usa os dois, mas a documentação atual não os lista mais, então
-  use os kits acima para um projeto novo.
-- Nota de versão: essa geração de kits chegou no **Laravel 12**; o kit Svelte e
-  a autenticação via Fortify vieram no **Laravel 13**. Tutoriais antigos com
-  `laravel new --breeze` são anteriores a tudo isso.
+- A lógica de cadastro fica em `app/Actions/Fortify/CreateNewUser.php`.
+- Nos kits com Inertia, desligar uma funcionalidade também exige remover as
+  rotas dela usadas nos componentes, senão o build quebra.
+- **Breeze** e **Jetstream** eram a geração anterior de starter kits; a
+  documentação atual não os lista mais, então use os kits acima em projetos novos.
+- Essa geração de kits chegou no **Laravel 12**; o kit Svelte e a
+  autenticação via Fortify vieram no **Laravel 13**.
 
 ## Ambiente Local: Herd e Sail
 
-`php artisan serve` funciona, mas parte do princípio de que você já tem PHP,
-Composer e um banco instalados e configurados na máquina. Duas ferramentas
-oficiais eliminam esse trabalho de setup.
+`php artisan serve` parte do princípio de que você já tem PHP, Composer e um
+banco instalados e configurados. Herd e Sail eliminam esse trabalho de setup.
 
 ### Herd (macOS / Windows)
-
-Um app nativo que já vem com PHP, Composer e nginx. Qualquer projeto dentro do
-diretório "parkeado" é servido automaticamente em `<pasta>.test`, sem comando
-`serve` e sem número de porta.
 
 ```bash
 herd park ~/Sites          # serve todos os projetos dessa pasta
@@ -121,25 +99,20 @@ herd php -v                # o binário PHP gerenciado pelo Herd
 herd open                  # abre o projeto atual no navegador
 ```
 
+- Um app nativo com PHP, Composer e nginx. Projetos num diretório
+  "parkeado" são servidos automaticamente em `<pasta>.test`.
 - Troque a versão do PHP por projeto pela interface ou com `herd use php@8.3`.
-- O Herd já traz os binários `php`, `composer`, `laravel`, `node`, `npm` e `nvm`,
-  por isso o `node` pode não aparecer no `PATH` fora do seu shell.
-- A versão paga adiciona bancos de dados, captura de e-mails e visualização de
-  logs; a gratuita cobre PHP + nginx.
+- O Herd já traz os binários `php`, `composer`, `laravel`, `node`, `npm` e
+  `nvm`; por isso o `node` pode não aparecer no `PATH` fora do seu shell.
+- A versão paga adiciona bancos de dados, captura de e-mails e visualização de logs.
 
 ### Sail (Docker)
-
-Uma casca fina sobre o Docker Compose que entrega PHP, MySQL, Redis e outros
-como containers, sem instalar nada na máquina.
 
 ```bash
 php artisan sail:install     # adiciona o Sail a um projeto existente
 ./vendor/bin/sail up -d      # sobe os containers
 ./vendor/bin/sail down       # derruba os containers
 ```
-
-O detalhe para se acostumar: **sua aplicação roda dentro de um container, então
-os comandos precisam rodar lá também.** Prefixe tudo com `sail`:
 
 ```bash
 php artisan serve   →  sail artisan serve
@@ -149,23 +122,20 @@ npm run dev         →  sail npm run dev
 php artisan tinker  →  sail artisan tinker
 ```
 
-Deixe curto com um alias no shell:
-
-```bash
-alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'
-```
-
-- Rodar `php artisan migrate` puro na máquina enquanto usa Sail é um erro
-  comum, pois isso usa o PHP do host, que não enxerga o banco do container.
+- Empacota PHP, MySQL, Redis e outros como containers via Docker Compose,
+  sem instalar nada na máquina. Prefixe todo comando com `sail`.
+- Encurte com um alias no shell: `alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'`.
+- Rodar `php artisan migrate` puro na máquina é um erro comum; usa o PHP
+  do host, não o banco do container.
 - No `.env`, `DB_HOST` é o **nome do serviço** (`mysql`), não `127.0.0.1`.
 
-Todo o resto deste cheat sheet é igual nos dois casos. Herd e Sail mudam *onde*
-os comandos rodam, não o que eles fazem.
+Herd e Sail mudam *onde* os comandos rodam, não o que eles fazem. Todo o
+resto deste cheat sheet é igual nos dois casos.
 
 ## Arquitetura: MVC
 
-O Laravel segue o padrão **MVC** (Model, View, Controller). A requisição
-percorre a aplicação em uma direção:
+O Laravel segue o padrão **MVC**. A requisição percorre a aplicação em uma
+direção:
 
 ```text
 Requisição → routes/web.php → Controller → Model (Eloquent) → Banco
@@ -173,14 +143,10 @@ Requisição → routes/web.php → Controller → Model (Eloquent) → Banco
                           View (Blade) → Resposta
 ```
 
-| Camada         | Fica em                     | Responsabilidade                              |
-| -------------- | --------------------------- | --------------------------------------------- |
-| **Rota**       | `routes/web.php`, `api.php` | Liga uma URL + verbo HTTP a um código         |
-| **Controller** | `app/Http/Controllers/`     | Recebe a requisição, orquestra, responde      |
-| **Model**      | `app/Models/`               | Representa uma tabela, guarda queries e relações |
-| **View**       | `resources/views/`          | Templates Blade que renderizam o HTML         |
-
-Outras pastas que vale conhecer:
+- **Rota** (`routes/web.php`, `api.php`): liga uma URL e um verbo HTTP a um código.
+- **Controller** (`app/Http/Controllers/`): recebe a requisição, orquestra, responde.
+- **Model** (`app/Models/`): representa uma tabela, guarda queries e relações.
+- **View** (`resources/views/`): templates Blade que renderizam o HTML.
 
 ```text
 app/Http/Middleware/     # código que roda antes/depois de cada requisição
@@ -194,12 +160,10 @@ routes/                  # definição das rotas
 storage/                 # logs, cache, views compiladas, arquivos enviados
 ```
 
-- Mantenha os controllers magros: valide, delegue, responda. Regra de negócio
-  vive nos models ou em classes dedicadas, não no controller.
+- Mantenha os controllers magros: valide, delegue, responda. Regra de
+  negócio vive nos models ou em classes dedicadas, não no controller.
 
 ## Comandos Artisan do Dia a Dia
-
-`artisan` é a CLI. `php artisan list` mostra tudo; `php artisan help <comando>` explica um.
 
 ```bash
 php artisan serve                   # sobe o servidor de desenvolvimento
@@ -209,6 +173,8 @@ php artisan route:list              # todas as rotas registradas
 php artisan route:list --path=user  # filtrado
 php artisan about                   # ambiente, versões, estado dos caches
 ```
+
+- `artisan` é a CLI. `php artisan list` mostra tudo; `php artisan help <comando>` explica um.
 
 ### Geradores
 
@@ -249,7 +215,7 @@ php artisan down             # modo manutenção
 php artisan up
 ```
 
-- Em produção você faz o contrário, *cacheia*: `php artisan config:cache route:cache view:cache`.
+- Em produção, cacheie: `php artisan config:cache route:cache view:cache`.
 - Em desenvolvimento, mantenha limpo, já que config cacheada ignora mudanças no `.env`.
 
 ## Rotas
@@ -344,8 +310,8 @@ $post->comments;                       // carregamento sob demanda
 Post::with('comments')->get();         // eager loading, evita o problema N+1
 ```
 
-- `create()` e `update()` só atribuem campos listados em `$fillable`. Uma coluna
-  que "sumiu" silenciosamente quase sempre é um `$fillable` incompleto.
+- `create()` e `update()` só atribuem campos listados em `$fillable`. Uma
+  coluna que "sumiu" silenciosamente quase sempre é um `$fillable` incompleto.
 - O model `Post` mapeia para a tabela `posts` por convenção (plural, snake_case).
 
 ## Migrations
@@ -417,13 +383,13 @@ $request->validate([
 ]);
 ```
 
-Em caso de falha o Laravel redireciona de volta automaticamente com os erros e
-os dados antigos, sem `try/catch`. Para conjuntos maiores de regras, use um
-Form Request:
-
 ```bash
 php artisan make:request StorePostRequest
 ```
+
+- Em caso de falha, o Laravel redireciona de volta automaticamente com os
+  erros e os dados antigos, sem `try/catch`.
+- Para conjuntos maiores de regras, use um Form Request, gerado acima.
 
 ## Vite e Assets
 
@@ -437,39 +403,54 @@ npm run dev     # desenvolvimento: hot reload, precisa ficar rodando
 npm run build   # produção: gera public/build/ + manifest.json
 ```
 
-- Em desenvolvimento, o `npm run dev` roda **junto** com o `php artisan serve`:
-  dois terminais, os dois rodando. O `composer run dev` sobe os dois (mais o
-  worker de fila) de uma vez.
-- Em produção (ou sempre que o servidor de dev não estiver de pé), você precisa
-  ter rodado `npm run build` pelo menos uma vez.
+- Em desenvolvimento, o `npm run dev` roda **junto** com o `php artisan serve`.
+  O `composer run dev` sobe os dois, mais o worker de fila, num terminal só.
+- Em produção, ou sempre que o servidor de dev não estiver de pé, você
+  precisa ter rodado `npm run build` pelo menos uma vez.
 
 ## Erros Comuns
 
-| Erro                                                    | Causa                                          | Correção                                                |
-| ------------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------- |
-| `No application encryption key has been specified`      | `APP_KEY` vazia ou `.env` faltando             | `cp .env.example .env && php artisan key:generate`      |
-| Página em branco / **500** genérico                     | O erro real está escondido                     | Ponha `APP_DEBUG=true` no `.env`, ou leia `storage/logs/laravel.log` |
-| `SQLSTATE[HY000] [2002] Connection refused`             | Banco não está rodando, ou host/porta errados  | Suba o banco; confira `DB_HOST`/`DB_PORT` no `.env`     |
-| `SQLSTATE[HY000] [1045] Access denied for user`         | Credenciais do banco erradas                   | Ajuste `DB_USERNAME`/`DB_PASSWORD` e rode `php artisan config:clear` |
-| `SQLSTATE[42S02] Base table or view not found`          | As migrations nunca rodaram                    | `php artisan migrate`                                   |
-| `Unable to open database file` (SQLite)                 | O arquivo não existe                           | `touch database/database.sqlite`                        |
-| `Vite manifest not found at public/build/manifest.json` | Assets nunca foram buildados e o dev server está desligado | `npm run build`, ou rode `npm run dev`      |
-| Página carrega mas sem CSS/JS                           | O `npm run dev` parou                          | Reinicie, ou rode `npm run build`                       |
-| **419** Page Expired                                    | Falta `@csrf` ou a sessão expirou              | Adicione `@csrf` no formulário; limpe os cookies        |
-| **404** numa rota que você acabou de criar              | Rotas cacheadas, ou verbo errado               | `php artisan route:clear`; confira `php artisan route:list` |
-| `Target class [FooController] does not exist`           | Namespace errado ou typo na rota               | Importe o controller e use `[FooController::class, 'metodo']` |
-| `Class "App\Models\Post" not found`                     | Autoloader desatualizado                       | `composer dump-autoload`                                |
-| Mudança no `.env` não surte efeito                      | Config está cacheada                           | `php artisan config:clear` (ou `optimize:clear`)        |
-| `The stream or file .../laravel.log could not be opened` | Sem permissão de escrita                      | `chmod -R 775 storage bootstrap/cache`                  |
-| Imagens enviadas dão 404 em `/storage/...`              | Falta o symlink                                | `php artisan storage:link`                              |
-| `Add [title] to fillable property`                      | Mass assignment bloqueado                      | Adicione a coluna ao `$fillable` do model               |
-| `Attempt to read property on null`                      | Uma query retornou `null`                      | Use `findOrFail()`, ou proteja com `@if`/`?->`          |
-| `composer install` falha em `ext-...`                   | Extensão do PHP faltando                       | Instale (ex.: `php-mbstring`, `php-xml`, `php-curl`)    |
-| Usando Sail: `Connection refused` em `127.0.0.1`        | Rodou o comando no host, ou `DB_HOST` errado   | Prefixe com `sail`; use `DB_HOST=mysql` no `.env`       |
+- `No application encryption key has been specified`: `APP_KEY` vazia ou
+  `.env` faltando. Correção: `cp .env.example .env && php artisan key:generate`.
+- Página em branco ou **500** genérico: o erro real está escondido. Ponha
+  `APP_DEBUG=true` no `.env`, ou leia `storage/logs/laravel.log`.
+- `SQLSTATE[HY000] [2002] Connection refused`: o banco não está rodando,
+  ou `DB_HOST`/`DB_PORT` no `.env` estão errados.
+- `SQLSTATE[HY000] [1045] Access denied for user`: `DB_USERNAME`/`DB_PASSWORD`
+  errados. Ajuste e rode `php artisan config:clear`.
+- `SQLSTATE[42S02] Base table or view not found`: as migrations nunca
+  rodaram. Correção: `php artisan migrate`.
+- `Unable to open database file` (SQLite): o arquivo não existe. Correção:
+  `touch database/database.sqlite`.
+- `Vite manifest not found at public/build/manifest.json`: assets nunca
+  foram buildados e o dev server está desligado. Correção: `npm run build`,
+  ou rode `npm run dev`.
+- Página carrega mas sem CSS/JS: o `npm run dev` parou. Reinicie, ou rode
+  `npm run build`.
+- **419** Page Expired: falta `@csrf` ou a sessão expirou. Adicione `@csrf`
+  no formulário, ou limpe os cookies.
+- **404** numa rota que você acabou de criar: rotas cacheadas, ou verbo
+  errado. Rode `php artisan route:clear`, depois confira `php artisan route:list`.
+- `Target class [FooController] does not exist`: namespace errado ou typo
+  na rota. Importe o controller e use `[FooController::class, 'metodo']`.
+- `Class "App\Models\Post" not found`: autoloader desatualizado. Correção:
+  `composer dump-autoload`.
+- Mudança no `.env` não surte efeito: config está cacheada. Correção:
+  `php artisan config:clear` (ou `optimize:clear`).
+- `The stream or file .../laravel.log could not be opened`: sem permissão
+  de escrita. Correção: `chmod -R 775 storage bootstrap/cache`.
+- Imagens enviadas dão 404 em `/storage/...`: falta o symlink. Correção:
+  `php artisan storage:link`.
+- `Add [title] to fillable property`: mass assignment bloqueado. Adicione
+  a coluna ao `$fillable` do model.
+- `Attempt to read property on null`: uma query retornou `null`. Use
+  `findOrFail()`, ou proteja com `@if`/`?->`.
+- `composer install` falha em `ext-...`: uma extensão do PHP está
+  faltando. Instale (ex.: `php-mbstring`, `php-xml`, `php-curl`).
+- Usando Sail, `Connection refused` em `127.0.0.1`: o comando rodou no
+  host, ou `DB_HOST` está errado. Prefixe com `sail`; use `DB_HOST=mysql`.
 
 ### A Ordem de Depuração
-
-Quando algo quebra e você não sabe o motivo, nesta ordem:
 
 ```bash
 tail -f storage/logs/laravel.log   # 1. leia o erro de verdade
@@ -479,8 +460,8 @@ php artisan route:list             # 4. a rota existe como você imagina?
 php artisan about                  # 5. ambiente, conexão com o banco, caches
 ```
 
-A maioria dos 500 de iniciante é uma de três coisas: falta de `APP_KEY`, falta
-de conexão com o banco, ou migrations que nunca rodaram.
+- A maioria dos 500 de iniciante é uma de três coisas: falta de `APP_KEY`,
+  falta de conexão com o banco, ou migrations que nunca rodaram.
 
 ## References
 

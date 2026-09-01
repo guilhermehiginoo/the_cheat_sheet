@@ -11,16 +11,12 @@ tags:
 ## Starting a Project
 
 ```bash
-# Create a new project (Composer is the only hard requirement)
-composer create-project laravel/laravel my-app
+composer create-project laravel/laravel my-app   # create a new project
 cd my-app
 
-# Or, with the Laravel installer
-composer global require laravel/installer
-laravel new my-app
+composer global require laravel/installer   # or, install the installer once
+laravel new my-app                          # then create projects with it
 ```
-
-Every fresh clone of an existing project needs the same four steps:
 
 ```bash
 composer install          # install PHP dependencies (vendor/ is gitignored)
@@ -29,56 +25,46 @@ php artisan key:generate  # write APP_KEY into .env
 php artisan migrate       # create the database tables
 ```
 
-Then start the two servers you need in development:
-
 ```bash
 composer run dev    # server + queue worker + Vite, all in one terminal
 ```
 
-Or start the pieces yourself, in separate terminals:
-
-```bash
-php artisan serve   # PHP app on http://127.0.0.1:8000
-npm install         # first time only
-npm run dev         # Vite dev server for CSS/JS
-```
-
+- The four `composer install` → `migrate` steps above are what a fresh clone
+  of an existing project needs.
 - `.env` is **not** committed, which is why a cloned project has none.
-- `APP_KEY` is used to encrypt sessions and cookies. Without it, nothing boots.
-- `php artisan serve` is for development only; production runs behind Nginx/Apache or FrankenPHP.
-- A brand-new project defaults to SQLite: `laravel new` already creates
+- `APP_KEY` encrypts sessions and cookies. Without it, nothing boots.
+- `composer run dev` (or `php artisan serve` alone) is for development only;
+  production runs behind Nginx/Apache or FrankenPHP.
+- A new project defaults to SQLite: `laravel new` already creates
   `database/database.sqlite` and runs the migrations for you.
 
 ## Starter Kits
 
-`laravel new` prompts you to pick a starter kit. A starter kit is a normal
-Laravel application that already ships authentication (login, registration,
-password reset, email verification, two-factor) plus a scaffolded frontend.
-All of that code lives **inside your project**, so you own it and edit it
-directly; there is nothing to upgrade later.
+`laravel new` prompts you to pick a starter kit: a normal Laravel app that
+already ships authentication and a scaffolded frontend, fully inside your
+project for you to edit.
 
 - **React**: Inertia, React 19, TypeScript, Tailwind, [shadcn/ui](https://ui.shadcn.com). Frontend in `resources/js/`.
 - **Vue**: Inertia, Vue 3 Composition API, TypeScript, Tailwind, shadcn-vue. Frontend in `resources/js/`.
 - **Svelte**: Inertia, Svelte 5, TypeScript, Tailwind, shadcn-svelte. Frontend in `resources/js/`.
-- **Livewire**: Livewire + Tailwind + [Flux UI](https://fluxui.dev), reactive UI written in PHP with no JS framework. Frontend in `resources/views/`.
-- **None**: the plain skeleton. Pick this to learn the framework itself, or when you're building an API.
-
-The three Inertia kits let you write React/Vue/Svelte components while keeping
-server-side routing and controllers, with no separate API layer. Livewire is the
-choice if you'd rather stay in Blade and PHP.
+- **Livewire**: Livewire, Tailwind, [Flux UI](https://fluxui.dev). No JS framework, all Blade and PHP. Frontend in `resources/views/`.
+- **None**: the plain skeleton, for learning the framework or building an API.
 
 ```bash
 laravel new my-app                            # prompts for the kit
 laravel new my-app --using=vendor/starter-kit # a community kit from Packagist
 ```
 
-Each kit also offers two options in the same prompt:
+- The React, Vue, and Svelte kits use Inertia to keep server-side routing and
+  controllers, with no separate API layer.
+- **Teams**: an option in the same prompt. Adds team management screens and
+  team-scoped routes (`/{current_team}/dashboard`).
+- **WorkOS AuthKit**: another option. Swaps the built-in auth for a hosted
+  provider with social login, passkeys, magic links, and SSO. Needs
+  `WORKOS_CLIENT_ID`, `WORKOS_API_KEY`, and `WORKOS_REDIRECT_URL` in `.env`.
 
-- **Teams**: users belong to teams, with management screens and team-scoped routes (`/{current_team}/dashboard`).
-- **WorkOS AuthKit**: swaps the built-in auth for a hosted provider with social login, passkeys, magic links, and SSO. Needs `WORKOS_CLIENT_ID`, `WORKOS_API_KEY`, and `WORKOS_REDIRECT_URL` in `.env`.
-
-Authentication in every kit is powered by **Laravel Fortify**, which registers
-the routes for you. Turn features on and off in `config/fortify.php`:
+Every kit uses **Laravel Fortify** for authentication, configured in
+`config/fortify.php`:
 
 ```php
 use Laravel\Fortify\Features;
@@ -91,28 +77,20 @@ use Laravel\Fortify\Features;
 ],
 ```
 
-- Registration logic lives in `app/Actions/Fortify/CreateNewUser.php`, and that's
-  where you add extra fields to the sign-up form.
-- On the Inertia kits, disabling a feature means also removing the references to
-  its routes in your components, or the frontend build fails.
-- **Breeze** and **Jetstream** were the previous generation of starter kits.
-  Plenty of tutorials still use them, but the current docs no longer list them,
-  so use the kits above for a new project.
-- Version note: this generation of kits arrived in **Laravel 12**; the Svelte
-  kit and Fortify-powered authentication came in **Laravel 13**. Older
-  tutorials showing `laravel new --breeze` predate all of it.
+- Registration logic lives in `app/Actions/Fortify/CreateNewUser.php`.
+- On the Inertia kits, disabling a feature also means removing the routes it
+  used from your frontend components, or the build fails.
+- **Breeze** and **Jetstream** were the previous generation of starter kits;
+  current docs no longer list them, so use the kits above for new projects.
+- This kit generation shipped in **Laravel 12**; the Svelte kit and
+  Fortify-powered auth came in **Laravel 13**.
 
 ## Local Environment: Herd and Sail
 
-`php artisan serve` works, but it assumes you already have PHP, Composer, and a
-database installed and configured on your machine. Two official tools remove
-that setup work.
+`php artisan serve` assumes PHP, Composer, and a database are already
+installed and configured. Herd and Sail remove that setup work.
 
 ### Herd (macOS / Windows)
-
-A native app that bundles PHP, Composer, and nginx. Any project inside its
-parked directory is served automatically at `<folder>.test`, with no `serve`
-command and no port numbers.
 
 ```bash
 herd park ~/Sites          # serve every project in this folder
@@ -121,25 +99,20 @@ herd php -v                # the PHP binary Herd manages
 herd open                  # open the current project in the browser
 ```
 
+- A native app bundling PHP, Composer, and nginx. Projects in a parked
+  directory are served automatically at `<folder>.test`.
 - Switch PHP versions per project from the UI or `herd use php@8.3`.
 - Herd bundles the `php`, `composer`, `laravel`, `node`, `npm`, and `nvm`
-  binaries, so if `node` isn't on your `PATH` outside your shell, that's why.
-- The paid tier adds databases, a mail catcher, and log viewing; the free tier
-  covers PHP + nginx.
+  binaries; that's why `node` may be missing from your `PATH` elsewhere.
+- The paid tier adds databases, a mail catcher, and log viewing.
 
 ### Sail (Docker)
-
-A thin wrapper around Docker Compose that ships PHP, MySQL, Redis, and more as
-containers, so nothing is installed on the host.
 
 ```bash
 php artisan sail:install     # add Sail to an existing project
 ./vendor/bin/sail up -d      # start the containers
 ./vendor/bin/sail down       # stop them
 ```
-
-The one thing to get used to: **your app runs inside a container, so commands
-have to run there too.** Prefix them with `sail`:
 
 ```bash
 php artisan serve   →  sail artisan serve
@@ -149,23 +122,20 @@ npm run dev         →  sail npm run dev
 php artisan tinker  →  sail artisan tinker
 ```
 
-Make it short with a shell alias:
-
-```bash
-alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'
-```
-
-- Running a bare `php artisan migrate` on the host while using Sail is a common
-  mistake, since it targets the host's PHP and can't reach the container's database.
+- Wraps Docker Compose with PHP, MySQL, Redis, and more, so nothing is
+  installed on the host. Prefix every command with `sail`.
+- Shorten it with a shell alias: `alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'`.
+- Running a bare `php artisan migrate` on the host is a common mistake; it
+  targets the host's PHP, not the container's database.
 - In `.env`, `DB_HOST` is the **service name** (`mysql`), not `127.0.0.1`.
 
-Everything else in this cheat sheet is identical either way. Herd and Sail
-change *where* the commands run, not what they do.
+Herd and Sail change *where* the commands run, not what they do. Everything
+else in this cheat sheet is identical either way.
 
 ## Architecture: MVC
 
-Laravel follows the **MVC** pattern (Model, View, Controller). A request flows
-through the app in one direction:
+Laravel follows the **MVC** pattern. A request flows through the app in one
+direction:
 
 ```text
 Request → routes/web.php → Controller → Model (Eloquent) → Database
@@ -173,14 +143,10 @@ Request → routes/web.php → Controller → Model (Eloquent) → Database
                         View (Blade) → Response
 ```
 
-| Layer          | Lives in                    | Responsibility                            |
-| -------------- | --------------------------- | ----------------------------------------- |
-| **Route**      | `routes/web.php`, `api.php` | Maps a URL + HTTP verb to code            |
-| **Controller** | `app/Http/Controllers/`     | Receives the request, orchestrates, responds |
-| **Model**      | `app/Models/`               | Represents a table, holds queries and relations |
-| **View**       | `resources/views/`          | Blade templates that render HTML          |
-
-Other folders worth knowing:
+- **Route** (`routes/web.php`, `api.php`): maps a URL and HTTP verb to code.
+- **Controller** (`app/Http/Controllers/`): receives the request, orchestrates, responds.
+- **Model** (`app/Models/`): represents a table, holds queries and relations.
+- **View** (`resources/views/`): Blade templates that render HTML.
 
 ```text
 app/Http/Middleware/     # code that runs before/after every request
@@ -194,12 +160,10 @@ routes/                  # route definitions
 storage/                 # logs, cache, compiled views, uploaded files
 ```
 
-- Keep controllers thin: validate, delegate, return. Business logic belongs in
-  models or dedicated classes, not in the controller.
+- Keep controllers thin: validate, delegate, return. Business logic belongs
+  in models or dedicated classes, not in the controller.
 
 ## Everyday Artisan Commands
-
-`artisan` is the CLI. `php artisan list` shows everything; `php artisan help <command>` explains one.
 
 ```bash
 php artisan serve                   # run the dev server
@@ -209,6 +173,8 @@ php artisan route:list              # every registered route
 php artisan route:list --path=user  # filtered
 php artisan about                   # environment, versions, cache status
 ```
+
+- `artisan` is the CLI. `php artisan list` shows everything; `php artisan help <command>` explains one.
 
 ### Generators
 
@@ -249,7 +215,7 @@ php artisan down             # maintenance mode
 php artisan up
 ```
 
-- In production you *cache* instead: `php artisan config:cache route:cache view:cache`.
+- In production, cache instead: `php artisan config:cache route:cache view:cache`.
 - In development, keep them cleared, since cached config ignores `.env` changes.
 
 ## Routing
@@ -344,8 +310,8 @@ $post->comments;                       // lazy load
 Post::with('comments')->get();         // eager load, avoids the N+1 problem
 ```
 
-- `create()` and `update()` only assign fields listed in `$fillable`. A silently
-  missing column is almost always a missing `$fillable` entry.
+- `create()` and `update()` only assign fields listed in `$fillable`. A
+  silently missing column is almost always a missing `$fillable` entry.
 - Model `Post` maps to table `posts` by convention (plural, snake_case).
 
 ## Migrations
@@ -417,12 +383,13 @@ $request->validate([
 ]);
 ```
 
-On failure Laravel redirects back automatically with errors and old input,
-no `try/catch` needed. For bigger rule sets, use a Form Request:
-
 ```bash
 php artisan make:request StorePostRequest
 ```
+
+- On failure, Laravel redirects back automatically with errors and old
+  input; no `try/catch` needed.
+- For bigger rule sets, use a Form Request, generated above.
 
 ## Vite and Assets
 
@@ -436,39 +403,54 @@ npm run dev     # development: hot reload, must stay running
 npm run build   # production: writes public/build/ + manifest.json
 ```
 
-- In development, `npm run dev` runs **alongside** `php artisan serve`: two
-  terminals, both running. `composer run dev` starts both (plus the queue
-  worker) in one.
-- In production (or whenever you're not running the dev server), you must have
+- In development, `npm run dev` runs **alongside** `php artisan serve`.
+  `composer run dev` starts both, plus the queue worker, in one terminal.
+- In production, or whenever the dev server isn't running, you must have
   run `npm run build` at least once.
 
 ## Common Errors
 
-| Error                                                | Cause                                            | Fix                                                     |
-| ---------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------- |
-| `No application encryption key has been specified`   | `APP_KEY` empty or `.env` missing                | `cp .env.example .env && php artisan key:generate`      |
-| Blank page / generic **500**                         | Real error hidden                                | Set `APP_DEBUG=true` in `.env`, or read `storage/logs/laravel.log` |
-| `SQLSTATE[HY000] [2002] Connection refused`          | Database isn't running or wrong host/port        | Start the DB; check `DB_HOST`/`DB_PORT` in `.env`       |
-| `SQLSTATE[HY000] [1045] Access denied for user`      | Wrong DB credentials                             | Fix `DB_USERNAME` / `DB_PASSWORD`, then `php artisan config:clear` |
-| `SQLSTATE[42S02] Base table or view not found`       | Migrations never ran                             | `php artisan migrate`                                   |
-| `Unable to open database file` (SQLite)              | The file doesn't exist                           | `touch database/database.sqlite`                        |
-| `Vite manifest not found at public/build/manifest.json` | Assets were never built and dev server is off | `npm run build`, or run `npm run dev`                   |
-| Page loads but CSS/JS is missing                     | `npm run dev` stopped                            | Restart it, or `npm run build`                          |
-| **419** Page Expired                                 | Missing `@csrf` or expired session               | Add `@csrf` to the form; clear cookies                  |
-| **404** on a route you just added                    | Cached routes, or wrong verb                     | `php artisan route:clear`; check `php artisan route:list` |
-| `Target class [FooController] does not exist`        | Wrong namespace or typo in the route             | Import the controller and use `[FooController::class, 'method']` |
-| `Class "App\Models\Post" not found`                  | Autoloader out of date                           | `composer dump-autoload`                                |
-| `.env` change has no effect                          | Config is cached                                 | `php artisan config:clear` (or `optimize:clear`)        |
-| `The stream or file .../laravel.log could not be opened` | No write permission                          | `chmod -R 775 storage bootstrap/cache`                  |
-| Uploaded images 404 in `/storage/...`                | Symlink missing                                  | `php artisan storage:link`                              |
-| `Add [title] to fillable property`                   | Mass assignment blocked                          | Add the column to `$fillable` on the model              |
-| `Attempt to read property on null`                   | A query returned `null`                          | Use `findOrFail()`, or guard with `@if`/`?->`           |
-| `composer install` fails on `ext-...`                | Missing PHP extension                            | Install it (e.g. `php-mbstring`, `php-xml`, `php-curl`) |
-| Using Sail: `Connection refused` on `127.0.0.1`       | Ran the command on the host, or wrong `DB_HOST`  | Prefix with `sail`; set `DB_HOST=mysql` in `.env`       |
+- `No application encryption key has been specified`: `APP_KEY` empty or
+  `.env` missing. Fix: `cp .env.example .env && php artisan key:generate`.
+- Blank page or a generic **500**: the real error is hidden. Set
+  `APP_DEBUG=true` in `.env`, or read `storage/logs/laravel.log`.
+- `SQLSTATE[HY000] [2002] Connection refused`: the database isn't running,
+  or `DB_HOST`/`DB_PORT` in `.env` are wrong.
+- `SQLSTATE[HY000] [1045] Access denied for user`: wrong `DB_USERNAME` /
+  `DB_PASSWORD`. Fix them, then `php artisan config:clear`.
+- `SQLSTATE[42S02] Base table or view not found`: migrations never ran.
+  Fix: `php artisan migrate`.
+- `Unable to open database file` (SQLite): the file doesn't exist. Fix:
+  `touch database/database.sqlite`.
+- `Vite manifest not found at public/build/manifest.json`: assets were
+  never built and the dev server is off. Fix: `npm run build`, or run
+  `npm run dev`.
+- Page loads but CSS/JS is missing: `npm run dev` stopped. Restart it, or
+  run `npm run build`.
+- **419** Page Expired: missing `@csrf` or an expired session. Add `@csrf`
+  to the form, or clear cookies.
+- **404** on a route you just added: cached routes, or the wrong verb.
+  Run `php artisan route:clear`, then check `php artisan route:list`.
+- `Target class [FooController] does not exist`: wrong namespace or a typo
+  in the route. Import the controller and use `[FooController::class, 'method']`.
+- `Class "App\Models\Post" not found`: autoloader out of date. Fix:
+  `composer dump-autoload`.
+- `.env` change has no effect: config is cached. Fix: `php artisan config:clear`
+  (or `optimize:clear`).
+- `The stream or file .../laravel.log could not be opened`: no write
+  permission. Fix: `chmod -R 775 storage bootstrap/cache`.
+- Uploaded images 404 in `/storage/...`: the symlink is missing. Fix:
+  `php artisan storage:link`.
+- `Add [title] to fillable property`: mass assignment blocked. Add the
+  column to `$fillable` on the model.
+- `Attempt to read property on null`: a query returned `null`. Use
+  `findOrFail()`, or guard with `@if` / `?->`.
+- `composer install` fails on `ext-...`: a PHP extension is missing.
+  Install it (e.g. `php-mbstring`, `php-xml`, `php-curl`).
+- Using Sail, `Connection refused` on `127.0.0.1`: the command ran on the
+  host, or `DB_HOST` is wrong. Prefix with `sail`; set `DB_HOST=mysql`.
 
 ### The Debugging Order
-
-When something breaks and you don't know why, in this order:
 
 ```bash
 tail -f storage/logs/laravel.log   # 1. read the actual error
@@ -478,8 +460,8 @@ php artisan route:list             # 4. does the route exist as you think?
 php artisan about                  # 5. env, DB connection, cache state
 ```
 
-Most beginner 500s are one of three things: no `APP_KEY`, no database
-connection, or migrations that never ran.
+- Most beginner 500s are one of three things: no `APP_KEY`, no database
+  connection, or migrations that never ran.
 
 ## References
 
