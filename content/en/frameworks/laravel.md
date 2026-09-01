@@ -1,6 +1,6 @@
 ---
 title: Laravel
-description: Practical reference for setting up a Laravel project, everyday Artisan commands, MVC structure, and fixing the errors beginners hit most.
+description: Practical reference for setting up a Laravel project, Artisan commands, MVC structure, and Eloquent.
 tags:
   - php
   - web

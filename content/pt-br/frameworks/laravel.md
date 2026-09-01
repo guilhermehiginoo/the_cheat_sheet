@@ -1,6 +1,6 @@
 ---
 title: Laravel
-description: Referência prática para criar um projeto Laravel, comandos Artisan do dia a dia, estrutura MVC e os erros que mais pegam iniciantes.
+description: Referência prática para criar um projeto Laravel, comandos Artisan, estrutura MVC e Eloquent.
 tags:
   - php
   - web
